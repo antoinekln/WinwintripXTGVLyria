@@ -312,6 +312,36 @@
     return {w: Math.round(w), h: Math.round(h)};
   }
 
+  // StPageFlip draws at 1 canvas px per CSS px, which looks soft on HD / retina
+  // screens. Give the canvas real device resolution (x dpr, at least x2 for
+  // smoother downscaling of the 3520px sources) and smooth with high quality.
+  function sharpenCanvas(){
+    var canvas = bookEl.querySelector("canvas");
+    if (!canvas || canvas.__sharp) return;
+    canvas.__sharp = true;
+    var k = Math.min(3, Math.max(window.devicePixelRatio || 1, 2));
+    var proto = HTMLCanvasElement.prototype;
+    var wDesc = Object.getOwnPropertyDescriptor(proto, "width");
+    var hDesc = Object.getOwnPropertyDescriptor(proto, "height");
+    var ctx = canvas.getContext("2d");
+    var cssW = canvas.width, cssH = canvas.height;
+    function apply(){
+      ctx.setTransform(k, 0, 0, k, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+    }
+    Object.defineProperty(canvas, "width", {
+      get: function(){ return wDesc.get.call(canvas) / k; },
+      set: function(v){ wDesc.set.call(canvas, Math.round(v * k)); apply(); }
+    });
+    Object.defineProperty(canvas, "height", {
+      get: function(){ return hDesc.get.call(canvas) / k; },
+      set: function(v){ hDesc.set.call(canvas, Math.round(v * k)); apply(); }
+    });
+    canvas.width = cssW;   // re-apply at the new resolution
+    canvas.height = cssH;
+  }
+
   function buildBook(startIdx){
     if (pageFlip){ try { pageFlip.destroy(); } catch(e){} pageFlip = null; }
     // destroy() removes the container from the DOM: recreate it
@@ -343,6 +373,7 @@
       startPage: startIdx || 0
     });
     pageFlip.on("init", function(e){
+      sharpenCanvas();
       ready = true;
       setCover(startIdx === 0 || !startIdx);
       void bookMountEl.offsetWidth;
