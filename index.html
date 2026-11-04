@@ -1,10 +1,11 @@
+<meta charset="utf-8">
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>WinWinTrip × TGV Lyria</title>
 <style>
   /*
     Layout concept: a single catalogue page floats in a dim "reading room",
-    lit from above, turning between spreads with a 3D flip; a drawer of
-    thumbnails slides up from the bottom rail, signage-style type on top.
+    lit from above; StPageFlip drives a real paper-curl page turn with
+    corner-drag, while a drawer of thumbnails slides up from the bottom rail.
   */
   :root{
     --bg-0:#0b1220;
@@ -13,7 +14,6 @@
     --ink:#161a22;
     --ink-soft:#5b6472;
     --accent:#e2142d;
-    --accent-dim:#9c2334;
     --line:rgba(246,243,236,0.14);
     --shadow:rgba(0,0,0,0.55);
     color-scheme: dark;
@@ -43,10 +43,18 @@
     display:flex;
     flex-direction:column;
   }
-  @font-face{
-    font-family:"Archivo Expanded";
-    src:local("Archivo");
-  }
+
+  /* --- StPageFlip base styles (inlined: CSP forbids external stylesheets) --- */
+  .stf__parent{position:relative;display:block;box-sizing:border-box;transform:translateZ(0);-ms-touch-action:pan-y;touch-action:pan-y;}
+  .sft__wrapper{position:relative;width:100%;box-sizing:border-box;}
+  .stf__parent canvas{position:absolute;width:100%;height:100%;left:0;top:0;}
+  .stf__block{position:absolute;width:100%;height:100%;box-sizing:border-box;perspective:2000px;}
+  .stf__item{display:none;position:absolute;transform-style:preserve-3d;}
+  .stf__outerShadow{position:absolute;left:0;top:0;}
+  .stf__innerShadow{position:absolute;left:0;top:0;}
+  .stf__hardShadow{position:absolute;left:0;top:0;}
+  .stf__hardInnerShadow{position:absolute;left:0;top:0;}
+  /* --- end StPageFlip base styles --- */
 
   .top-bar{
     position:sticky;
@@ -61,51 +69,25 @@
     background:linear-gradient(180deg, rgba(11,18,32,0.92), rgba(11,18,32,0.0));
     backdrop-filter:blur(2px);
   }
-  .brand{
-    display:flex;
-    align-items:baseline;
-    gap:10px;
-    min-width:0;
-  }
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0;}
   .brand .mark{
-    font-family:"Archivo",sans-serif;
-    font-weight:800;
-    font-size:15px;
-    letter-spacing:0.08em;
-    color:var(--accent);
-    border:1.5px solid var(--accent);
-    padding:2px 7px;
-    border-radius:3px;
-    flex:none;
+    font-family:"Archivo",sans-serif;font-weight:800;font-size:15px;letter-spacing:0.08em;
+    color:var(--accent);border:1.5px solid var(--accent);padding:2px 7px;border-radius:3px;flex:none;
   }
   .brand .title{
-    font-family:"Archivo",sans-serif;
-    font-weight:700;
-    font-size:clamp(14px,3.6vw,19px);
-    letter-spacing:0.01em;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(14px,3.6vw,19px);
+    letter-spacing:0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .brand .title small{
-    display:block;
-    font-family:"IBM Plex Sans",sans-serif;
-    font-weight:400;
-    font-size:11px;
-    color:var(--ink-soft);
-    letter-spacing:0.07em;
-    text-transform:uppercase;
+    display:block;font-family:"IBM Plex Sans",sans-serif;font-weight:400;font-size:11px;
+    color:var(--ink-soft);letter-spacing:0.07em;text-transform:uppercase;
   }
 
   .top-actions{display:flex;gap:8px;flex:none;}
   .icon-btn{
-    width:38px;height:38px;
-    border-radius:8px;
-    border:1px solid var(--line);
-    background:rgba(255,255,255,0.05);
-    color:var(--paper);
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
+    width:38px;height:38px;border-radius:8px;border:1px solid var(--line);
+    background:rgba(255,255,255,0.05);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
     transition:background .15s, transform .15s, border-color .15s;
   }
   .icon-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3);}
@@ -114,10 +96,7 @@
   .icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
   .stage-wrap{
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    flex:1;display:flex;align-items:center;justify-content:center;
     padding:6px max(18px, env(safe-area-inset-left,0px)) 0 max(18px, env(safe-area-inset-left,0px));
     padding-right:max(18px, env(safe-area-inset-right,0px));
     min-height:0;
@@ -126,12 +105,11 @@
   .stage{
     position:relative;
     width:100%;
-    max-width:980px;
+    max-width:1020px;
     aspect-ratio:3520/1980;
-    perspective:2600px;
   }
 
-  .book{
+  .book-mount{
     position:relative;
     width:100%;
     height:100%;
@@ -140,75 +118,12 @@
     background:var(--paper);
   }
 
-  .sheet{
-    position:absolute;
-    inset:0;
-    border-radius:4px;
-    overflow:hidden;
-    will-change:transform, opacity;
-    box-shadow:0 0 0 1px rgba(0,0,0,0.08) inset;
-    background:var(--paper);
-  }
-  .sheet img{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-  }
-  .sheet::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .55s ease;
-  }
-  .sheet.fold-left::after{
-    background:linear-gradient(90deg, rgba(0,0,0,0.35), transparent 35%);
-    opacity:1;
-  }
-  .sheet.fold-right::after{
-    background:linear-gradient(270deg, rgba(0,0,0,0.35), transparent 35%);
-    opacity:1;
-  }
-
-  .spine-shade{
-    position:absolute;
-    top:0;bottom:0;left:0;
-    width:6%;
-    background:linear-gradient(90deg, rgba(0,0,0,0.18), transparent);
-    pointer-events:none;
-    border-radius:4px 0 0 4px;
-    z-index:5;
-  }
-
-  .nav-zone{
-    position:absolute;
-    top:0;bottom:0;
-    width:18%;
-    z-index:20;
-    cursor:pointer;
-    background:transparent;
-    border:none;
-    padding:0;
-  }
-  .nav-zone.prev{left:0;}
-  .nav-zone.next{right:0;}
-
   .nav-arrow{
-    position:absolute;
-    top:50%;
-    transform:translateY(-50%);
-    width:46px;height:46px;
-    border-radius:50%;
-    background:rgba(11,18,32,0.55);
-    border:1px solid rgba(255,255,255,0.18);
-    color:var(--paper);
-    display:flex;align-items:center;justify-content:center;
-    z-index:25;
-    cursor:pointer;
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:46px;height:46px;border-radius:50%;
+    background:rgba(11,18,32,0.55);border:1px solid rgba(255,255,255,0.18);
+    color:var(--paper);display:flex;align-items:center;justify-content:center;
+    z-index:50;cursor:pointer;
     transition:background .15s, transform .15s, opacity .2s;
     backdrop-filter:blur(3px);
   }
@@ -219,179 +134,75 @@
   .nav-arrow.next{right:-6px;}
   .nav-arrow[disabled]{opacity:0;pointer-events:none;}
   @media (max-width:640px){
-    .nav-arrow{width:38px;height:38px;}
-    .nav-arrow.prev{left:4px;}
-    .nav-arrow.next{right:4px;}
+    .nav-arrow{width:36px;height:36px;}
+    .nav-arrow.prev{left:2px;}
+    .nav-arrow.next{right:2px;}
   }
 
-  .zoom-hint{
-    position:absolute;
-    bottom:10px;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:11px;
-    letter-spacing:0.06em;
-    color:rgba(22,26,34,0.55);
-    background:rgba(255,255,255,0.72);
-    padding:3px 10px;
-    border-radius:999px;
-    z-index:15;
-    pointer-events:none;
-    transition:opacity .3s;
+  .drag-hint{
+    position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+    font-size:11px;letter-spacing:0.06em;color:rgba(22,26,34,0.6);
+    background:rgba(255,255,255,0.75);padding:3px 11px;border-radius:999px;
+    z-index:45;pointer-events:none;transition:opacity .4s;
   }
 
   .bottom-rail{
     flex:none;
-    padding:12px max(18px, env(safe-area-inset-left,0px))
-      max(14px, env(safe-area-inset-bottom,0px))
-      max(18px, env(safe-area-inset-left,0px));
+    padding:12px max(18px, env(safe-area-inset-left,0px)) max(14px, env(safe-area-inset-bottom,0px)) max(18px, env(safe-area-inset-left,0px));
     padding-right:max(18px, env(safe-area-inset-right,0px));
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+    display:flex;flex-direction:column;gap:10px;
   }
 
-  .progress-row{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    max-width:980px;
-    width:100%;
-    margin:0 auto;
-  }
+  .progress-row{display:flex;align-items:center;gap:14px;max-width:1020px;width:100%;margin:0 auto;}
   .page-count{
-    font-family:"Archivo",sans-serif;
-    font-variant-numeric:tabular-nums;
-    font-weight:700;
-    font-size:13px;
-    letter-spacing:0.03em;
-    color:var(--paper);
-    flex:none;
-    min-width:52px;
+    font-family:"Archivo",sans-serif;font-variant-numeric:tabular-nums;font-weight:700;
+    font-size:13px;letter-spacing:0.03em;color:var(--paper);flex:none;min-width:52px;
   }
-  .track{
-    position:relative;
-    flex:1;
-    height:4px;
-    border-radius:4px;
-    background:rgba(255,255,255,0.14);
-    cursor:pointer;
-  }
-  .track-fill{
-    position:absolute;
-    inset:0 auto 0 0;
-    width:0%;
-    border-radius:4px;
-    background:var(--accent);
-    transition:width .5s cubic-bezier(.4,.05,.2,1);
-  }
+  .track{position:relative;flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,0.14);cursor:pointer;}
+  .track-fill{position:absolute;inset:0 auto 0 0;width:0%;border-radius:4px;background:var(--accent);transition:width .45s cubic-bezier(.4,.05,.2,1);}
   .track-dot{
-    position:absolute;
-    top:50%;
-    width:11px;height:11px;
-    border-radius:50%;
-    background:var(--paper);
-    border:2px solid var(--accent);
-    transform:translate(-50%,-50%);
-    transition:left .5s cubic-bezier(.4,.05,.2,1);
+    position:absolute;top:50%;width:11px;height:11px;border-radius:50%;background:var(--paper);
+    border:2px solid var(--accent);transform:translate(-50%,-50%);transition:left .45s cubic-bezier(.4,.05,.2,1);
   }
 
   .thumbs-toggle{
-    flex:none;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    background:none;
-    border:1px solid var(--line);
-    color:var(--paper);
-    border-radius:8px;
-    height:34px;
-    padding:0 11px;
-    font-family:"IBM Plex Sans",sans-serif;
-    font-size:12px;
-    letter-spacing:0.03em;
-    cursor:pointer;
+    flex:none;display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);
+    color:var(--paper);border-radius:8px;height:34px;padding:0 11px;
+    font-family:"IBM Plex Sans",sans-serif;font-size:12px;letter-spacing:0.03em;cursor:pointer;
   }
   .thumbs-toggle:hover{background:rgba(255,255,255,0.08);}
   .thumbs-toggle svg{width:15px;height:15px;}
 
-  .thumb-drawer{
-    max-width:980px;
-    width:100%;
-    margin:0 auto;
-    overflow:hidden;
-    max-height:0;
-    transition:max-height .35s cubic-bezier(.4,.05,.2,1);
-  }
+  .thumb-drawer{max-width:1020px;width:100%;margin:0 auto;overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,.05,.2,1);}
   .thumb-drawer.open{max-height:116px;}
-  .thumb-strip{
-    display:flex;
-    gap:10px;
-    padding:8px 2px 4px;
-    overflow-x:auto;
-    scrollbar-width:thin;
-  }
+  .thumb-strip{display:flex;gap:10px;padding:8px 2px 4px;overflow-x:auto;scrollbar-width:thin;}
   .thumb{
-    flex:none;
-    width:128px;
-    aspect-ratio:3520/1980;
-    border-radius:4px;
-    overflow:hidden;
-    cursor:pointer;
-    border:2px solid transparent;
-    opacity:0.6;
-    transition:opacity .15s, border-color .15s, transform .15s;
-    position:relative;
-    background:#0003;
+    flex:none;width:128px;aspect-ratio:3520/1980;border-radius:4px;overflow:hidden;cursor:pointer;
+    border:2px solid transparent;opacity:0.6;transition:opacity .15s, border-color .15s, transform .15s;
+    position:relative;background:#0003;
   }
   .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
   .thumb:hover{opacity:0.9;transform:translateY(-2px);}
   .thumb.active{opacity:1;border-color:var(--accent);}
-  .thumb .num{
-    position:absolute;bottom:3px;right:5px;
-    font-family:"Archivo",sans-serif;
-    font-size:10px;font-weight:700;
-    color:#fff;
-    text-shadow:0 1px 3px rgba(0,0,0,0.8);
-  }
+  .thumb .num{position:absolute;bottom:3px;right:5px;font-family:"Archivo",sans-serif;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.8);}
 
-  .sr-only{
-    position:absolute;width:1px;height:1px;
-    padding:0;margin:-1px;overflow:hidden;
-    clip:rect(0,0,0,0);white-space:nowrap;border:0;
-  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
   .lightbox{
-    position:fixed;inset:0;
-    background:rgba(5,8,14,0.95);
-    z-index:100;
-    display:none;
-    align-items:center;
-    justify-content:center;
+    position:fixed;inset:0;background:rgba(5,8,14,0.95);z-index:100;display:none;
+    align-items:center;justify-content:center;
     padding:max(20px, env(safe-area-inset-top,0px)) max(20px, env(safe-area-inset-right,0px)) max(20px, env(safe-area-inset-bottom,0px)) max(20px, env(safe-area-inset-left,0px));
   }
   .lightbox.open{display:flex;}
-  .lightbox img{
-    max-width:100%;max-height:100%;
-    border-radius:3px;
-    box-shadow:0 20px 60px rgba(0,0,0,0.6);
-    cursor:zoom-out;
-  }
+  .lightbox img{max-width:100%;max-height:100%;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,0.6);cursor:zoom-out;}
   .lightbox-close{
-    position:absolute;
-    top:max(16px, env(safe-area-inset-top,0px));
-    right:max(16px, env(safe-area-inset-right,0px));
-    width:40px;height:40px;
-    border-radius:50%;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.2);
-    color:#fff;
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
+    position:absolute;top:max(16px, env(safe-area-inset-top,0px));right:max(16px, env(safe-area-inset-right,0px));
+    width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+    color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
 
   @media (prefers-reduced-motion:reduce){
-    .sheet, .track-fill, .track-dot, .thumb-drawer{transition:none !important;}
+    .track-fill, .track-dot, .thumb-drawer{transition:none !important;}
   }
 </style>
 
@@ -416,19 +227,15 @@
 
 <div class="stage-wrap">
   <div class="stage" id="stage">
-    <div class="book" id="book">
-      <div class="sheet" id="sheetA"><img id="imgA" alt=""></div>
-      <div class="sheet" id="sheetB"><img id="imgB" alt=""></div>
-      <div class="spine-shade"></div>
-      <button class="nav-zone prev" id="zonePrev" aria-label="Page précédente"></button>
-      <button class="nav-zone next" id="zoneNext" aria-label="Page suivante"></button>
+    <div class="book-mount">
+      <div id="book"></div>
       <button class="nav-arrow prev" id="btnPrev" aria-label="Page précédente">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <button class="nav-arrow next" id="btnNext" aria-label="Page suivante">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
-      <span class="zoom-hint" id="zoomHint">Cliquer la page pour zoomer</span>
+      <span class="drag-hint" id="dragHint">Glisse le coin de la page pour tourner</span>
     </div>
   </div>
 </div>
@@ -459,6 +266,7 @@
 
 <p class="sr-only" id="liveRegion" aria-live="polite"></p>
 
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
 (function(){
   var TOTAL = 7;
@@ -467,46 +275,69 @@
     pages.push("pages/page_" + String(i).padStart(3,"0") + ".jpg");
   }
 
-  var book = document.getElementById("book");
-  var curIdx = 0; // 0-based
-  var animating = false;
+  var stageEl = document.getElementById("stage");
+  var bookEl = document.getElementById("book");
+  var pageFlip = null;
+  var curIdx = 0;
+  var ready = false;
+  var ratio = 1980 / 3520;
 
-  var sheets = [
-    {el: document.getElementById("sheetA"), img: document.getElementById("imgA")},
-    {el: document.getElementById("sheetB"), img: document.getElementById("imgB")}
-  ];
-  var topLayer = 0;
-
-  function setInstant(el, transform, opacity, zIndex, fold){
-    el.style.transition = "none";
-    el.style.transform = transform;
-    el.style.opacity = String(opacity);
-    el.style.zIndex = String(zIndex);
-    el.classList.remove("fold-left", "fold-right");
-    if (fold) el.classList.add(fold);
-    void el.offsetWidth;
+  function measure(){
+    var w = Math.max(280, Math.round(stageEl.clientWidth || 900));
+    var h = Math.round(w * ratio);
+    return {w: w, h: h};
   }
 
-  function initBook(){
-    sheets[topLayer].img.src = pages[curIdx];
-    setInstant(sheets[topLayer].el, "none", 1, 2, null);
-    setInstant(sheets[1 - topLayer].el, "none", 0, 1, null);
+  function createFlip(){
+    ready = false;
+    var size = measure();
+    bookEl.innerHTML = "";
+    pageFlip = new St.PageFlip(bookEl, {
+      width: size.w,
+      height: size.h,
+      size: "stretch",
+      minWidth: 280,
+      maxWidth: 2200,
+      minHeight: Math.round(280 * ratio),
+      maxHeight: Math.round(2200 * ratio),
+      maxShadowOpacity: 0.55,
+      showCover: false,
+      drawShadow: true,
+      flippingTime: 620,
+      usePortrait: true,
+      useMouseEvents: true,
+      mobileScrollSupport: false,
+      swipeDistance: 20,
+      startPage: curIdx
+    });
+    pageFlip.on("init", function(e){
+      ready = true;
+      if (e && e.data && typeof e.data.page === "number") curIdx = e.data.page;
+      updateUI();
+    });
+    pageFlip.on("flip", function(e){
+      curIdx = e.data;
+      updateUI();
+    });
+    pageFlip.loadFromImages(pages);
   }
 
   function updateUI(){
-    document.getElementById("curPage").textContent = String(curIdx + 1);
+    var orientation = (pageFlip && ready) ? pageFlip.getOrientation() : "portrait";
+    var showsPair = orientation === "landscape" && curIdx < TOTAL - 1;
+    var label = showsPair ? (curIdx + 1) + "–" + (curIdx + 2) : String(curIdx + 1);
+    document.getElementById("curPage").textContent = label;
+
     var pct = TOTAL > 1 ? (curIdx / (TOTAL - 1)) * 100 : 0;
     document.getElementById("trackFill").style.width = pct + "%";
     document.getElementById("trackDot").style.left = pct + "%";
     document.getElementById("track").setAttribute("aria-valuenow", String(curIdx + 1));
-    document.getElementById("btnPrev").disabled = curIdx === 0;
-    document.getElementById("btnNext").disabled = curIdx === TOTAL - 1;
+    document.getElementById("btnPrev").disabled = !ready || curIdx === 0;
+    document.getElementById("btnNext").disabled = !ready || curIdx >= TOTAL - 1;
     document.getElementById("liveRegion").textContent = "Page " + (curIdx + 1) + " sur " + TOTAL;
 
     var thumbs = document.querySelectorAll(".thumb");
-    thumbs.forEach(function(t, i){
-      t.classList.toggle("active", i === curIdx);
-    });
+    thumbs.forEach(function(t, i){ t.classList.toggle("active", i === curIdx || (showsPair && i === curIdx + 1)); });
     var activeThumb = thumbs[curIdx];
     if (activeThumb && document.getElementById("thumbDrawer").classList.contains("open")){
       activeThumb.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
@@ -514,47 +345,15 @@
   }
 
   function goTo(target){
-    if (animating || target === curIdx || target < 0 || target > TOTAL - 1) return;
-    animating = true;
-    document.getElementById("zoomHint").style.opacity = "0";
-
-    var dir = target > curIdx ? 1 : -1;
-    var outgoing = sheets[topLayer];
-    var incoming = sheets[1 - topLayer];
-
-    incoming.img.src = pages[target];
-
-    // start state for the incoming sheet: hidden behind, tilted away on the side it enters from
-    setInstant(
-      incoming.el,
-      "rotateY(" + (dir > 0 ? 38 : -38) + "deg) scale(.95)",
-      0,
-      1,
-      dir > 0 ? "fold-right" : "fold-left"
-    );
-    incoming.el.style.transformOrigin = dir > 0 ? "right center" : "left center";
-    outgoing.el.style.transformOrigin = dir > 0 ? "left center" : "right center";
-    outgoing.el.style.zIndex = "2";
-
-    requestAnimationFrame(function(){
-      incoming.el.style.transition = "transform .5s cubic-bezier(.3,.05,.2,1), opacity .4s ease";
-      incoming.el.style.transform = "none";
-      incoming.el.style.opacity = "1";
-      incoming.el.classList.remove("fold-left", "fold-right");
-
-      outgoing.el.style.transition = "transform .5s cubic-bezier(.3,.05,.2,1), opacity .4s ease";
-      outgoing.el.style.transform = "rotateY(" + (dir > 0 ? -38 : 38) + "deg) scale(.95)";
-      outgoing.el.style.opacity = "0";
-      outgoing.el.classList.add(dir > 0 ? "fold-left" : "fold-right");
-    });
-
-    setTimeout(function(){
-      topLayer = 1 - topLayer;
+    if (!pageFlip || !ready || target < 0 || target > TOTAL - 1) return;
+    document.getElementById("dragHint").style.opacity = "0";
+    if (target === curIdx + 1) pageFlip.flipNext();
+    else if (target === curIdx - 1) pageFlip.flipPrev();
+    else {
+      pageFlip.turnToPage(target);
       curIdx = target;
-      setInstant(outgoing.el, "none", 0, 1, null);
-      animating = false;
       updateUI();
-    }, 520);
+    }
   }
 
   function buildThumbs(){
@@ -568,14 +367,18 @@
     });
   }
 
-  initBook();
+  createFlip();
   buildThumbs();
   updateUI();
 
-  document.getElementById("btnPrev").addEventListener("click", function(){ goTo(curIdx - 1); });
-  document.getElementById("btnNext").addEventListener("click", function(){ goTo(curIdx + 1); });
-  document.getElementById("zonePrev").addEventListener("click", function(){ goTo(curIdx - 1); });
-  document.getElementById("zoneNext").addEventListener("click", function(){ goTo(curIdx + 1); });
+  document.getElementById("btnPrev").addEventListener("click", function(){
+    document.getElementById("dragHint").style.opacity = "0";
+    if (pageFlip && ready) pageFlip.flipPrev();
+  });
+  document.getElementById("btnNext").addEventListener("click", function(){
+    document.getElementById("dragHint").style.opacity = "0";
+    if (pageFlip && ready) pageFlip.flipNext();
+  });
 
   document.addEventListener("keydown", function(e){
     if (document.getElementById("lightbox").classList.contains("open")){
@@ -591,8 +394,8 @@
   var track = document.getElementById("track");
   track.addEventListener("click", function(e){
     var rect = track.getBoundingClientRect();
-    var ratio = (e.clientX - rect.left) / rect.width;
-    goTo(Math.round(ratio * (TOTAL - 1)));
+    var ratioX = (e.clientX - rect.left) / rect.width;
+    goTo(Math.round(ratioX * (TOTAL - 1)));
   });
   track.addEventListener("keydown", function(e){
     if (e.key === "ArrowRight") goTo(curIdx + 1);
@@ -619,10 +422,6 @@
     lightboxImg.src = "";
   }
   document.getElementById("btnZoom").addEventListener("click", openLightbox);
-  book.addEventListener("click", function(e){
-    if (e.target.closest(".nav-zone") || e.target.closest(".nav-arrow")) return;
-    openLightbox();
-  });
   lightbox.addEventListener("click", closeLightbox);
   document.getElementById("lightboxClose").addEventListener("click", function(e){
     e.stopPropagation();
@@ -637,24 +436,20 @@
     }
   });
 
-  // touch swipe
-  var touchStartX = null;
-  var stage = document.getElementById("stage");
-  stage.addEventListener("touchstart", function(e){
-    touchStartX = e.touches[0].clientX;
-  }, {passive:true});
-  stage.addEventListener("touchend", function(e){
-    if (touchStartX === null) return;
-    var dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40){
-      if (dx < 0) goTo(curIdx + 1); else goTo(curIdx - 1);
-    }
-    touchStartX = null;
-  }, {passive:true});
+  var resizeTimer = null;
+  window.addEventListener("resize", function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){
+      if (pageFlip){
+        try { pageFlip.destroy(); } catch(e){}
+      }
+      createFlip();
+    }, 220);
+  });
 
   setTimeout(function(){
-    var hint = document.getElementById("zoomHint");
+    var hint = document.getElementById("dragHint");
     if (hint) hint.style.opacity = "0";
-  }, 4000);
+  }, 5000);
 })();
 </script>
