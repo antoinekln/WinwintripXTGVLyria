@@ -109,8 +109,8 @@
 
   .stage{
     position:relative;
-    aspect-ratio:3520/1980;
-    width:min(100cqw, 177.78cqh);
+    aspect-ratio:7040/1980;
+    width:min(100cqw, 355.56cqh);
   }
   @supports not (width: 1cqw){
     .stage{ width:100%; max-height:100%; }
@@ -292,12 +292,12 @@
   var pageFlip = null;
   var curIdx = 0;
   var ready = false;
-  var ratio = 1980 / 3520;
+  var spreadRatio = 1980 / (3520 * 2);
 
   function measure(){
     var rect = stageEl.getBoundingClientRect();
-    var w = Math.max(280, Math.round(rect.width || 900));
-    var h = Math.max(Math.round(280 * ratio), Math.round(rect.height || w * ratio));
+    var w = Math.max(320, Math.round(rect.width || 1000));
+    var h = Math.max(Math.round(320 * spreadRatio), Math.round(rect.height || w * spreadRatio));
     return {w: w, h: h};
   }
 
@@ -307,12 +307,13 @@
     bookEl.innerHTML = "";
     bookEl.style.width = size.w + "px";
     bookEl.style.height = size.h + "px";
+    var pageW = Math.round(size.w / 2);
     pageFlip = new St.PageFlip(bookEl, {
-      width: size.w,
+      width: pageW,
       height: size.h,
       size: "stretch",
-      minWidth: size.w,
-      maxWidth: size.w,
+      minWidth: pageW,
+      maxWidth: pageW,
       minHeight: size.h,
       maxHeight: size.h,
       maxShadowOpacity: 0.55,
