@@ -8,25 +8,27 @@
     corner-drag, while a drawer of thumbnails slides up from the bottom rail.
   */
   :root{
-    --bg-0:#0b1220;
-    --bg-1:#121d33;
-    --paper:#f6f3ec;
-    --ink:#161a22;
-    --ink-soft:#5b6472;
-    --accent:#e2142d;
-    --line:rgba(246,243,236,0.14);
+    --bg-0:#0a131f;
+    --bg-1:#0f1d2e;
+    --paper:#fdfdfb;
+    --ink:#121b26;
+    --ink-soft:#5b6b78;
+    --accent:#1bb3a6;
+    --accent-dim:#14867d;
+    --lyria:#e2142d;
+    --line:rgba(253,253,251,0.14);
     --shadow:rgba(0,0,0,0.55);
     color-scheme: dark;
   }
   @media (prefers-color-scheme: light){
     :root:not([data-theme="dark"]){
-      --bg-0:#0e1626;
-      --bg-1:#17253f;
+      --bg-0:#0d1a29;
+      --bg-1:#132436;
     }
   }
   :root[data-theme="light"]{
-    --bg-0:#0e1626;
-    --bg-1:#17253f;
+    --bg-0:#0d1a29;
+    --bg-1:#132436;
   }
 
   *{box-sizing:border-box;}
@@ -69,15 +71,18 @@
     background:linear-gradient(180deg, rgba(11,18,32,0.92), rgba(11,18,32,0.0));
     backdrop-filter:blur(2px);
   }
-  .brand{display:flex;align-items:baseline;gap:10px;min-width:0;}
-  .brand .mark{
-    font-family:"Archivo",sans-serif;font-weight:800;font-size:15px;letter-spacing:0.08em;
-    color:var(--accent);border:1.5px solid var(--accent);padding:2px 7px;border-radius:3px;flex:none;
+  .brand{display:flex;align-items:center;gap:12px;min-width:0;}
+  .brand .dash{
+    width:22px;height:3px;border-radius:2px;flex:none;
+    background:linear-gradient(90deg,var(--accent),var(--lyria));
   }
   .brand .title{
     font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(14px,3.6vw,19px);
     letter-spacing:0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    color:#f4f6f5;
   }
+  .brand .title b{color:var(--accent);font-weight:800;}
+  .brand .title span{color:var(--ink-soft);font-weight:500;}
   .brand .title small{
     display:block;font-family:"IBM Plex Sans",sans-serif;font-weight:400;font-size:11px;
     color:var(--ink-soft);letter-spacing:0.07em;text-transform:uppercase;
@@ -100,13 +105,16 @@
     padding:6px max(18px, env(safe-area-inset-left,0px)) 0 max(18px, env(safe-area-inset-left,0px));
     padding-right:max(18px, env(safe-area-inset-right,0px));
     min-height:0;
+    container-type:size;
   }
 
   .stage{
     position:relative;
-    width:100%;
-    max-width:1020px;
     aspect-ratio:3520/1980;
+    width:min(100cqw, 1400px, 177.78cqh);
+  }
+  @supports not (width: 1cqw){
+    .stage{ width:min(100%, 1400px); max-height:100%; }
   }
 
   .book-mount{
@@ -127,7 +135,7 @@
     transition:background .15s, transform .15s, opacity .2s;
     backdrop-filter:blur(3px);
   }
-  .nav-arrow:hover{background:rgba(226,20,45,0.85);border-color:transparent;}
+  .nav-arrow:hover{background:var(--accent-dim);border-color:transparent;}
   .nav-arrow:active{transform:translateY(-50%) scale(0.92);}
   .nav-arrow svg{width:20px;height:20px;}
   .nav-arrow.prev{left:-6px;}
@@ -212,8 +220,8 @@
 
 <header class="top-bar">
   <div class="brand">
-    <span class="mark">WWT</span>
-    <span class="title">WinWinTrip × TGV Lyria<small>Catalogue numérique</small></span>
+    <span class="dash"></span>
+    <span class="title"><b>WinWinTrip</b> <span>× TGV Lyria</span><small>Catalogue numérique</small></span>
   </div>
   <div class="top-actions">
     <button class="icon-btn" id="btnZoom" title="Agrandir la page" aria-label="Agrandir la page">
@@ -437,15 +445,22 @@
   });
 
   var resizeTimer = null;
-  window.addEventListener("resize", function(){
+  function scheduleResize(){
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function(){
-      if (pageFlip){
-        try { pageFlip.destroy(); } catch(e){}
-      }
+      var size = measure();
+      if (!pageFlip || Math.abs(size.w - lastSize.w) < 2) return;
+      lastSize = size;
+      try { pageFlip.destroy(); } catch(e){}
       createFlip();
-    }, 220);
-  });
+    }, 200);
+  }
+  var lastSize = measure();
+  if (window.ResizeObserver){
+    new ResizeObserver(scheduleResize).observe(stageEl);
+  } else {
+    window.addEventListener("resize", scheduleResize);
+  }
 
   setTimeout(function(){
     var hint = document.getElementById("dragHint");
