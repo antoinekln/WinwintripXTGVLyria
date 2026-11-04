@@ -316,7 +316,6 @@
   var curIdx = 0;
   var ready = true;
   var currentOrientation = null;
-  var SINGLE_AR = 3520 / 1980;
   var SPREAD_AR = (3520 * 2) / 1980;
   var bookPages = pages.slice(1); // interior pages shown as spreads (cover handled separately)
 
@@ -331,12 +330,23 @@
     };
   }
 
-  function sizeFor(orientation){
+  function sizeForSpread(){
     var avail = availableBox();
-    var ar = orientation === "single" ? SINGLE_AR : SPREAD_AR;
-    var w = avail.w, h = w / ar;
-    if (h > avail.h){ h = avail.h; w = h * ar; }
+    var w = avail.w, h = w / SPREAD_AR;
+    if (h > avail.h){ h = avail.h; w = h * SPREAD_AR; }
     return {w: Math.round(w), h: Math.round(h)};
+  }
+
+  // The cover is shown at the SAME per-page scale it will have once part of
+  // a spread: exactly half the spread's width, same height. That way opening
+  // the book only widens the frame to reveal page two — the cover itself
+  // never changes size, which is what reads as a smooth, continuous motion.
+  function sizeFor(orientation){
+    var spread = sizeForSpread();
+    if (orientation === "single"){
+      return {w: Math.round(spread.w / 2), h: spread.h};
+    }
+    return spread;
   }
 
   function sizeStageTo(orientation){
