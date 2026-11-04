@@ -295,8 +295,9 @@
   var ratio = 1980 / 3520;
 
   function measure(){
-    var w = Math.max(280, Math.round(stageEl.clientWidth || 900));
-    var h = Math.round(w * ratio);
+    var rect = stageEl.getBoundingClientRect();
+    var w = Math.max(280, Math.round(rect.width || 900));
+    var h = Math.max(Math.round(280 * ratio), Math.round(rect.height || w * ratio));
     return {w: w, h: h};
   }
 
@@ -304,14 +305,17 @@
     ready = false;
     var size = measure();
     bookEl.innerHTML = "";
+    bookEl.style.width = size.w + "px";
+    bookEl.style.height = size.h + "px";
+    var pageW = Math.round(size.w / 2);
     pageFlip = new St.PageFlip(bookEl, {
-      width: size.w,
+      width: pageW,
       height: size.h,
       size: "stretch",
-      minWidth: 280,
-      maxWidth: 2200,
-      minHeight: Math.round(280 * ratio),
-      maxHeight: Math.round(2200 * ratio),
+      minWidth: 150,
+      maxWidth: 3000,
+      minHeight: 120,
+      maxHeight: 3000,
       maxShadowOpacity: 0.55,
       showCover: false,
       drawShadow: true,
@@ -453,7 +457,7 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function(){
       var size = measure();
-      if (!pageFlip || Math.abs(size.w - lastSize.w) < 2) return;
+      if (!pageFlip || (Math.abs(size.w - lastSize.w) < 2 && Math.abs(size.h - lastSize.h) < 2)) return;
       lastSize = size;
       try { pageFlip.destroy(); } catch(e){}
       createFlip();
