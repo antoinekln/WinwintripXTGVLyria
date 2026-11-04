@@ -307,15 +307,14 @@
     bookEl.innerHTML = "";
     bookEl.style.width = size.w + "px";
     bookEl.style.height = size.h + "px";
-    var pageW = Math.round(size.w / 2);
     pageFlip = new St.PageFlip(bookEl, {
-      width: pageW,
+      width: size.w,
       height: size.h,
       size: "stretch",
-      minWidth: 150,
-      maxWidth: 3000,
-      minHeight: 120,
-      maxHeight: 3000,
+      minWidth: size.w,
+      maxWidth: size.w,
+      minHeight: size.h,
+      maxHeight: size.h,
       maxShadowOpacity: 0.55,
       showCover: false,
       drawShadow: true,
